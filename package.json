@@ -1,0 +1,20 @@
+{
+  "name": "centredown",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brendan Molloy <brendan@bbqsrc.net> (https://brendan.so/)",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "express": "^4.15.3",
+    "express-nunjucks": "^2.2.3",
+    "moment": "^2.18.1",
+    "mysql": "^2.13.0",
+    "nunjucks": "^3.0.1",
+    "promise-mysql": "^3.0.2"
+  }
+}
