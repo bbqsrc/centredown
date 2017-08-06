@@ -10,8 +10,6 @@ const requireEnvVars = [
     "DB_USERNAME"
 ]
 
-console.log(env)
-
 for (const v of requireEnvVars) {
   if (env[v] == null) {
       throw new Error(`A configuration key is missing: ${v}`)
@@ -39,22 +37,68 @@ expressNunjucks(app, {
   noCache: isDev
 })
 
-states = {
+const states = {
   0: "OK",
   1: "WARNING",
   2: "CRITICAL",
   3: "UNKNOWN"
 }
 
-bsStates = {
+const humanStates = {
+  0: "LINES AVAILABLE",
+  1: "SOME ISSUES",
+  2: "LINES DOWN",
+  3: "UNKNOWN"
+}
+
+const bsStates = {
   0: "label-success",
   1: "label-warning",
   2: "label-danger",
   3: "label-default"
 }
 
-// service_id 3 is Derek.
 const sqlMostRecent = `\
+SELECT FROM_UNIXTIME(sse.start_time) as last_check, sse.state, s.description FROM servicestateevents sse
+JOIN services s ON sse.service_id = s.service_id
+WHERE sse.last_update = 1
+AND sse.service_id <> 3`
+
+const cache = {}
+
+app.get("/most-recent", (req, res, next) => {
+  if (cache.mostRecent) {
+    if (moment(cache.mostRecent.expires).isAfter(moment())) {
+      res.render("most-recent", { rows: cache.mostRecent.rows })
+      return
+    }
+  }
+
+  openDB()
+    .then(db => {
+      return db.query(sqlMostRecent)
+    })
+    .then(raw => {
+      const rows = raw.map(r => {
+        return {
+          service: r.description,
+          status: humanStates[r.state],
+          bsClass: bsStates[r.state],
+          lastCheck: moment(r.last_check).fromNow()
+        }
+      })
+
+      cache.mostRecent = { expires: moment().add(10, "minutes"), rows }
+
+      res.render("most-recent", { rows })
+    })
+    .catch(err => {
+      next(err)
+    })
+})
+
+// service_id 3 is Derek.
+const sqlHistory = `\
 SELECT 
   FROM_UNIXTIME(sse.start_time) as call_start,
   FROM_UNIXTIME(sse.end_time) as call_end,
@@ -66,14 +110,13 @@ WHERE sse.service_id <> 3
 ORDER BY call_start DESC
 LIMIT 100`
 
-app.get("/most-recent", (req, res, next) => {
+app.get("/history", (req, res, next) => {
   openDB()
     .then(db => {
-      return db.query(sqlMostRecent)
+      return db.query(sqlHistory)
     })
     .then(raw => {
       const rows = raw.map(r => {
-        console.log(r)
         return {
           service: r.description,
           status: states[r.state],
@@ -83,7 +126,7 @@ app.get("/most-recent", (req, res, next) => {
         }
       })
 
-      res.render("most-recent", { rows })
+      res.render("history", { rows })
     })
     .catch(err => {
       next(err)

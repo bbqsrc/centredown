@@ -14,7 +14,9 @@
                     <tr>
                         <th>Service</th>
                         <th>Status</th>
-                        <th>Last Checked</th>
+                        <th>Duration</th>
+                        {#<th>Last Check</th>#}
+                        <th>Date/Time</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -24,7 +26,9 @@
                         <td>
                             <span class="label {{row.bsClass}}">{{row.status}}</span>
                         </td>
-                        <td>{{row.lastCheck}}</td>
+                        <td>{{row.duration}}</td>
+                        {#<td>{{row.lastCheck}}</td>#}
+                        <td>{{row.dateTime}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
