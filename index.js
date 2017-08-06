@@ -62,7 +62,8 @@ const sqlMostRecent = `\
 SELECT FROM_UNIXTIME(sse.start_time) as last_check, sse.state, s.description FROM servicestateevents sse
 JOIN services s ON sse.service_id = s.service_id
 WHERE sse.last_update = 1
-AND sse.service_id <> 3`
+AND sse.service_id <> 3
+AND s.active_checks = 1`
 
 const cache = {}
 
